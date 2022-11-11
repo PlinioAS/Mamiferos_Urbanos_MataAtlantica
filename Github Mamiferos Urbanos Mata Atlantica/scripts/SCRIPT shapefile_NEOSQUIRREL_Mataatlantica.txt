@@ -1,0 +1,56 @@
+
+
+
+getwd()
+setwd("~/limitesmataatl")
+getwd()
+# Abrir planilha m1
+m2 <- read.csv("m2.csv",sep=",",header=T,dec='.', na.strings=c("NULL","",""),as.is=TRUE)
+View(m2)
+summary(m2)
+
+plot(Latitude~Longitude, data=m2)
+
+
+install.packages("sf", dependences=TRUE)
+library(sf)
+mataatlantica_mma <- st_read("limite_ma_mma_wgs84.shp")
+# Consultar o Sistema de referencia de coordenadas (Coordinate Reference System = CRS)
+st_crs(mataatlantica_mma)
+#Visualizar o mapa do limite da Mata Atlantica (MMA/IBGE)
+plot(st_geometry(mataatlantica_mma))
+# Cruzar os dois objetos de dados para subconjunto e combinar os atributos. Podemos usar st_intersection para sobrepor e combinar os campos de atributo dos dois objetos de dados.
+
+
+
+m2_shp <- subset(m2, !is.na(m2$Latitude))##excluindo NA's dos valores de latitude
+View(m2_shp)
+m2_shp <- subset(m2, !is.na(m2$Longitude))##excluindo NA's dos valores de latitude
+View(m2_shp)
+
+
+##Apenas conferindo se nao ha nenhum valor de NA na Longitude
+teste <- is.na(m2_shp$Longitude)
+t <- unique(teste) ##Somente deve aparecer Falso
+teste <- is.na(m2_shp$Latitude)
+t <- unique(teste)
+
+# Analise de dados espaciais “terra”
+
+
+
+library(terra)
+
+##Para conseguir georreferenciar a tabela nao pode ter dados faltantes na Latitude e Longitude
+m2_shp <- st_as_sf(m2_shp, coords= c("Longitude","Latitude"),crs = 4326)
+plot(st_geometry(m2_shp))
+
+##Salvando o shapefile de pontos
+st_write(m2_shp, "m2_pontos.shp")
+##Fazendo a intersecao entre os dois shapefiles
+shapefile_NEOSQUIRREL_Mataatlantica <- st_intersection(st_geometry(m2_shp),st_geometry(mataatlantica_mma))
+##Salvando o shapefile final
+st_write(shapefile_NEOSQUIRREL_Mataatlantica,
+         "shapefile_NEOSQUIRREL_Mataatlantica.shp")
+View(shapefile_NEOSQUIRREL_Mataatlantica)
+plot(st_geometry(shapefile_NEOSQUIRREL_Mataatlantica))
